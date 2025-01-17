@@ -1,10 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { Globe, Instagram, Linkedin, Facebook, Menu, X, ChevronDown } from 'lucide-react';
+import { Globe, Instagram, Linkedin, Facebook, Menu, X, ChevronDown, Calendar, Home, Workflow } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import CountUp from 'react-countup';
+
+const FeatureCard = ({ feature, index }) => {
+  const ref = React.useRef(null);
+  const isInView = useInView(ref, { once: true });
+  
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.5, delay: index * 0.2 }}
+      className="text-center group perspective-1000"
+    >
+      <motion.div 
+        whileHover={{ rotateX: 10, rotateY: 10, scale: 1.05 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="bg-white/10 backdrop-blur-sm rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center relative"
+      >
+        <feature.icon size={48} className="text-white" />
+        <div className="absolute inset-0 rounded-full bg-white/5 transform -rotate-12 scale-105" />
+      </motion.div>
+      <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+      <p className="text-gray-400">{feature.desc}</p>
+    </motion.div>
+  );
+};
+
+const ParallaxText = ({ children }) => {
+  const ref = React.useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+  
+  const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
+  
+  return (
+    <motion.div ref={ref} style={{ y }}>
+      {children}
+    </motion.div>
+  );
+};
 
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  const { scrollY } = useScroll();
+  const opacity = useTransform(scrollY, [0, 100], [1, 0]);
+  const scale = useTransform(scrollY, [0, 100], [1, 0.95]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +71,24 @@ const LandingPage = () => {
     { number: '450+', label: 'Homes' },
     { number: '1000+', label: 'Travellers' },
     { number: '10,000+', label: 'Nights booked' }
+  ];
+
+  const features = [
+    { 
+      title: "Easy Booking", 
+      desc: "Book mid-term stays with just a few clicks",
+      icon: Calendar
+    },
+    { 
+      title: "Verified Homes", 
+      desc: "Every property is thoroughly vetted",
+      icon: Home
+    },
+    { 
+      title: "Flexible Terms", 
+      desc: "Tailored solutions for digital nomads",
+      icon: Workflow
+    }
   ];
 
   return (
@@ -53,7 +119,8 @@ const LandingPage = () => {
             {/* Mobile menu button */}
             <button 
               className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => console.log(isMenuOpen)(!isMenuOpen)}
+              
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -73,20 +140,52 @@ const LandingPage = () => {
           )}
         </div>
       </nav>
+      <motion.nav
+        style={{ backgroundColor: useTransform(scrollY, [0, 100], ['rgba(0,0,0,0)', 'rgba(0,0,0,0.9)']) }}
+        className="fixed w-full z-50 transition-all duration-300 py-6"
+      >
+        {/* ... rest of nav content ... */}
+      </motion.nav>
 
       {/* Hero Section */}
-      <div className="relative min-h-screen flex items-center justify-center px-4">
+      <motion.div 
+        className="relative min-h-screen flex items-center justify-center px-4"
+        style={{ opacity, scale }}
+      >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-4xl mx-auto text-center"
+        >
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight"
+          >
             One pass, make everywhere 
             <br /> your home <Globe className="inline animate-spin-slow" />
-          </h1>
-          <p className="text-gray-300 text-lg mb-4">— COMING SOON —</p>
-          <p className="text-xl md:text-2xl mb-12">
+          </motion.h1>
+          <ParallaxText>
+            <p className="text-gray-300 text-lg mb-4">— COMING SOON —</p>
+          </ParallaxText>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-xl md:text-2xl mb-12"
+          >
             Get early access now ⚡️ Be the first to get notified
-          </p>
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto flex gap-4">
+          </motion.p>
+          <motion.form 
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="max-w-md mx-auto flex gap-4"
+          >
             <input
               type="email"
               placeholder="Enter your email"
@@ -94,64 +193,101 @@ const LandingPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <button className="bg-white text-black px-8 py-3 rounded-lg hover:bg-gray-200 transition-colors">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-white text-black px-8 py-3 rounded-lg hover:bg-gray-200 transition-colors"
+            >
               Join Us
-            </button>
-          </form>
-          <ChevronDown className="mx-auto mt-16 animate-bounce" size={32} />
-        </div>
-      </div>
+            </motion.button>
+          </motion.form>
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="mt-16"
+          >
+            <ChevronDown size={32} />
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Features */}
       <div className="py-20 bg-black/50 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-12">
-            {[
-              { title: "Easy Booking", desc: "Book mid-term stays with just a few clicks" },
-              { title: "Verified Homes", desc: "Every property is thoroughly vetted" },
-              { title: "Flexible Terms", desc: "Tailored solutions for digital nomads" }
-            ].map((feature, idx) => (
-              <div key={idx} className="text-center group">
-                <div className="bg-white/10 backdrop-blur-sm rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center transition-transform group-hover:scale-110">
-                  <img src="/api/placeholder/96/96" alt={feature.title} className="w-12 h-12" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-400">{feature.desc}</p>
-              </div>
+            {features.map((feature, idx) => (
+              <FeatureCard key={idx} feature={feature} index={idx} />
             ))}
           </div>
         </div>
       </div>
 
       {/* Milestones Section */}
-      <div className="py-20 relative">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold mb-8">Milestones</h2>
-              <p className="text-gray-300 leading-relaxed">
-                Mid-term rental shouldn't be treated the same way as long term rental. 
-                Movehere is a subscription based platform designed for digital nomads 
-                and travelers, offering seamless booking for both mid-term accommodations. 
-                Our goal is to provide a convenient and flexible solution for remote 
-                professionals while not sacrificing the protections to owner's properties.
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl">
-              <div className="grid grid-cols-3 gap-8">
-                {stats.map((stat, idx) => (
-                  <div key={idx} className="text-center">
-                    <div className="text-3xl font-bold text-white mb-2">{stat.number}</div>
-                    <div className="text-gray-400">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+<div className="py-20 relative">
+  <div className="container mx-auto px-4">
+    <motion.div 
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="grid md:grid-cols-2 gap-12 items-center"
+    >
+      <div>
+        <ParallaxText>
+          <h2 className="text-4xl font-bold mb-8">Milestones</h2>
+        </ParallaxText>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-gray-300 leading-relaxed"
+        >
+          Mid-term rental shouldn't be treated the same way as long term rental. 
+          Movehere is a subscription-based platform designed for digital nomads 
+          and travelers, offering seamless booking for mid-term accommodations. 
+          Our goal is to provide a convenient and flexible solution for remote 
+          professionals while not sacrificing the protections for owners' properties.
+        </motion.p>
       </div>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8 }}
+        className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl"
+      >
+        <div className="grid grid-cols-3 gap-8">
+          {stats.map((stat, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: idx * 0.2 }}
+              className="text-center"
+            >
+              <CountUp
+                start={0}
+                end={parseInt(stat.number.replace('+', '').replace(',', ''))}
+                duration={2}
+                separator=","
+              >
+                {({ countUpRef }) => (
+                  <div>
+                    <span ref={countUpRef} className="text-4xl font-bold" />
+                    <span className="text-2xl">+</span>
+                  </div>
+                )}
+              </CountUp>
+              <p className="text-gray-300">{stat.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  </div>
+</div>
 
-      {/* Footer */}
+      {/* Footer remains the same */}
+      <footer className="bg-black/90 backdrop-blur-sm pt-20 pb-6">
+        {/* Footer */}
       <footer className="bg-black/90 backdrop-blur-sm pt-20 pb-6">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
@@ -196,6 +332,7 @@ const LandingPage = () => {
             Proudly powered by MoveHere © {new Date().getFullYear()}
           </div>
         </div>
+      </footer>
       </footer>
     </div>
   );
